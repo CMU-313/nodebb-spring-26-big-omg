@@ -43,6 +43,37 @@ Implement Feature B, add automated tests + CI stability, and write `UserGuide.md
 - Time constraints → Feature A first, keep Feature B lightweight
 - Testing scope → focus on state transitions + metadata persistence
 
+## User Stories
+### User Story 1 — Resolve a Question
+As a student,
+I want to mark my question as resolved,
+so that others know the issue has been solved.
+
+**Acceptance Criteria**
+- A topic has an Open/Resolved status.
+- The topic owner or staff can change the status.
+- The status is visible on the topic list and topic page.
+
+### User Story 2 — Accept an Answer
+As a student,
+I want to select an accepted answer,
+so that the best response is highlighted.
+
+**Acceptance Criteria**
+- The topic owner can mark one reply as Accepted Answer.
+- The accepted reply is visually highlighted.
+- The topic status automatically changes to Resolved.
+
+### User Story 3 — Structured Question Fields
+As a student,
+I want to provide course and assignment info when asking,
+so that my question is easier to categorize and find.
+
+**Acceptance Criteria**
+- The post form allows Course, Assignment, and Urgency fields.
+- The system stores these fields as metadata.
+- Topics can be filtered by Course tag.
+
 <details>
 <summary>Upstream NodeBB README (reference)</summary>
 # ![NodeBB](public/images/sm-card.png)
