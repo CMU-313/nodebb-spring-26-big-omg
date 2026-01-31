@@ -1,4 +1,5 @@
 # Team Big-OMG — NodeBB Course Q&A Enhancement
+Team members: Jose German, Tony He, Zhanhan Liu, Jessica Zheng
 
 ## Our Project
 We are extending NodeBB to better support course-style Q&A (Piazza-like workflows) without modifying the core engine.
