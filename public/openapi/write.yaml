@@ -91,6 +91,9 @@ paths:
   /users/{uid}/invites/groups:
     $ref: 'write/users/uid/invites/groups.yaml'
 
+  /users/{uid}/emails:
+    $ref: 'write/users/uid/emails.yaml'
+
   /groups/:
     $ref: 'write/groups.yaml'
 
