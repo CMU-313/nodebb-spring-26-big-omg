@@ -90,6 +90,23 @@ Topics.unlock = async (req, res) => {
 	helpers.formatApiResponse(200, res);
 };
 
+// Mark a topic as resolved.
+// Delegates permission checks and persistence to api.topics
+Topics.markResolved = async (req, res) => {
+	await api.topics.markResolved(req, { tid: req.params.tid });
+	helpers.formatApiResponse(200, res, { tid: req.params.tid, resolved: true });
+};
+
+
+// Unmark a topic as resolved.
+// Uses the same API layer as markResolved for consistency.
+Topics.unmarkResolved = async (req, res) => {
+	await api.topics.unmarkResolved(req, { tid: req.params.tid });
+	helpers.formatApiResponse(200, res, { tid: req.params.tid, resolved: false });
+};
+
+
+
 Topics.follow = async (req, res) => {
 	await api.topics.follow(req, req.params);
 	helpers.formatApiResponse(200, res);

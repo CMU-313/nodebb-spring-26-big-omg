@@ -29,6 +29,7 @@ get:
                     description: A list of the topic events that still remain
                     items:
                       type: object
+                      additionalProperties: true
                       properties:
                         type:
                           type: string
@@ -36,6 +37,9 @@ get:
                         id:
                           type: number
                           description: Unique identifier for this topic event
+                        href:
+                          type: string
+                          description: A relative URL for the event target (when applicable)
                         timestamp:
                           type: number
                         timestampISO:
@@ -50,6 +54,22 @@ get:
                           description: A language key
                         uid:
                           type: number
+                        fromCid:
+                          type: string
+                          description: Original category id for move events
+                        fromCategory:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            slug:
+                              type: string
+                            icon:
+                              type: string
+                            color:
+                              type: string
+                            bgColor:
+                              type: string
                         user:
                           type: object
                           properties:

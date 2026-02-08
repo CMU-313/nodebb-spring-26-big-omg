@@ -24,6 +24,12 @@ module.exports = function () {
 	setupApiRoute(router, 'put', '/:tid/lock', [...middlewares], controllers.write.topics.lock);
 	setupApiRoute(router, 'delete', '/:tid/lock', [...middlewares], controllers.write.topics.unlock);
 
+	// Toggle resolved status for a topic (question).
+	// PUT marks the topic as resolved, DELETE unmarks it.
+	// This mirrors existing topic state routes such as lock/unlock.
+	setupApiRoute(router, 'put', '/:tid/resolved', [...middlewares, middleware.assert.topic], controllers.write.topics.markResolved);
+	setupApiRoute(router, 'delete', '/:tid/resolved', [...middlewares, middleware.assert.topic], controllers.write.topics.unmarkResolved);
+
 	setupApiRoute(router, 'put', '/:tid/follow', [...middlewares, middleware.assert.topic], controllers.write.topics.follow);
 	setupApiRoute(router, 'delete', '/:tid/follow', [...middlewares, middleware.assert.topic], controllers.write.topics.unfollow);
 	setupApiRoute(router, 'put', '/:tid/ignore', [...middlewares, middleware.assert.topic], controllers.write.topics.ignore);

@@ -165,6 +165,39 @@ topicsAPI.unlock = async function (caller, data) {
 	});
 };
 
+topicsAPI.markResolved = async function (caller, { tid }) {
+	if (!tid) {
+		throw new Error('[[error:invalid-tid]]');
+	}
+
+	// Only topic owner or admin/mod can toggle
+	const isOwner = await privileges.topics.isOwner(tid, caller.uid);
+	const isAdminOrMod = await privileges.topics.isAdminOrMod(tid, caller.uid);
+	if (!isOwner && !isAdminOrMod) {
+		throw new Error('[[error:no-privileges]]');
+	}
+
+	await topics.setTopicField(tid, 'resolved', 1);
+	return { tid, resolved: true };
+};
+
+topicsAPI.unmarkResolved = async function (caller, { tid }) {
+	if (!tid) {
+		throw new Error('[[error:invalid-tid]]');
+	}
+
+	const isOwner = await privileges.topics.isOwner(tid, caller.uid);
+	const isAdminOrMod = await privileges.topics.isAdminOrMod(tid, caller.uid);
+	if (!isOwner && !isAdminOrMod) {
+		throw new Error('[[error:no-privileges]]');
+	}
+
+	await topics.setTopicField(tid, 'resolved', 0);
+
+	return { tid, resolved: false };
+};
+
+
 topicsAPI.follow = async function (caller, data) {
 	await topics.follow(data.tid, caller.uid);
 };

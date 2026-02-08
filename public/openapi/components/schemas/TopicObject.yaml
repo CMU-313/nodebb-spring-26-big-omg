@@ -233,6 +233,10 @@ TopicObjectSlim:
           type: number
         deleterUid:
           type: number
+        resolved:
+          type: number
+          description: Whether the topic is marked as resolved (0 = no, 1 = yes)
+          example: 0
         titleRaw:
           type: string
         locked:
