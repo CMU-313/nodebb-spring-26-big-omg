@@ -43,6 +43,20 @@
 	<a component="topic/mark-unread-for-all" href="#" class="dropdown-item rounded-1 d-flex align-items-center gap-2" role="menuitem"><i class="fa fa-fw fa-inbox text-secondary"></i> [[topic:thread-tools.markAsUnreadForAll]]</a>
 </li>
 
+<li {{{ if resolved }}}hidden{{{ end }}}>
+	<a component="topic/mark-resolved" href="#" class="dropdown-item rounded-1 d-flex align-items-center gap-2 {{{ if resolved }}}hidden{{{ end }}}" role="menuitem">
+		<i class="fa fa-fw fa-check-circle text-secondary"></i>
+		Mark as Resolved
+	</a>
+</li>
+
+<li {{{ if !resolved }}}hidden{{{ end }}}>
+	<a component="topic/unmark-resolved" href="#" class="dropdown-item rounded-1 d-flex align-items-center gap-2 {{{ if !resolved }}}hidden{{{ end }}}" role="menuitem">
+		<i class="fa fa-fw fa-times-circle text-secondary"></i>
+		Mark as Unresolved
+	</a>
+</li>
+
 <li class="dropdown-divider"></li>
 {{{ end }}}
 

@@ -171,9 +171,8 @@ topicsAPI.markResolved = async function (caller, { tid }) {
 	}
 
 	// Only topic owner or admin/mod can toggle
-	const isOwner = await privileges.topics.isOwner(tid, caller.uid);
-	const isAdminOrMod = await privileges.topics.isAdminOrMod(tid, caller.uid);
-	if (!isOwner && !isAdminOrMod) {
+	const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, caller.uid);
+	if (!isOwnerOrAdminOrMod) {
 		throw new Error('[[error:no-privileges]]');
 	}
 
@@ -186,9 +185,8 @@ topicsAPI.unmarkResolved = async function (caller, { tid }) {
 		throw new Error('[[error:invalid-tid]]');
 	}
 
-	const isOwner = await privileges.topics.isOwner(tid, caller.uid);
-	const isAdminOrMod = await privileges.topics.isAdminOrMod(tid, caller.uid);
-	if (!isOwner && !isAdminOrMod) {
+	const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, caller.uid);
+	if (!isOwnerOrAdminOrMod) {
 		throw new Error('[[error:no-privileges]]');
 	}
 

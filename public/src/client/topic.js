@@ -74,6 +74,7 @@ define('forum/topic', [
 		$(window).on('scroll', utils.debounce(updateTopicTitle, 250));
 
 		handleTopicSearch();
+		handleResolvedToggle();
 
 		hooks.fire('action:topic.loaded', ajaxify.data);
 	};
@@ -125,6 +126,49 @@ define('forum/topic', [
 			});
 		});
 	}
+
+	function handleResolvedToggle() {
+	// Mark as resolved
+		$(document).on('click', '[component="topic/mark-resolved"]', async function (e) {
+			e.preventDefault();
+
+			const { tid } = ajaxify.data;
+
+			try {
+				await api.put(`/api/v3/topics/${tid}/resolved`, { resolved: 1 });
+
+				// UI update immediately
+				$('[component="topic/mark-resolved"]').closest('li').addClass('hidden');
+				$('[component="topic/unmark-resolved"]').closest('li').removeClass('hidden');
+
+				ajaxify.data.resolved = true;
+			} catch (err) {
+				console.error(err);
+				alerts.error(err?.message || err);
+			}
+		});
+
+		// Mark as unresolved
+		$(document).on('click', '[component="topic/unmark-resolved"]', async function (e) {
+			e.preventDefault();
+
+			const { tid } = ajaxify.data;
+
+			try {
+				await api.del(`/api/v3/topics/${tid}/resolved`);
+
+				// UI update immediately
+				$('[component="topic/unmark-resolved"]').closest('li').addClass('hidden');
+				$('[component="topic/mark-resolved"]').closest('li').removeClass('hidden');
+
+				ajaxify.data.resolved = false;
+			} catch (err) {
+				console.error(err);
+				alerts.error(err?.message || err);
+			}
+		});
+	}
+
 
 	Topic.toTop = function () {
 		navigator.scrollTop(0);
