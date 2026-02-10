@@ -32,9 +32,26 @@
 	<div class="d-flex flex-column gap-3">
 		<div class="d-flex gap-2 flex-wrap flex-column flex-md-row {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ else }}}justify-content-between{{{ end }}}">
 			<div class="d-flex flex-column gap-3">
-				<h1 component="post/header" class="tracking-tight fw-semibold fs-3 mb-0 text-break {{{ if config.theme.centerHeaderElements }}}text-center{{{ end }}}">
-					<span class="topic-title" component="topic/title">{title}</span>
-				</h1>
+				<div class="d-flex align-items-center gap-3 {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ end }}}">
+					<h1 component="post/header" class="tracking-tight fw-semibold fs-3 mb-0 text-break">
+						<span class="topic-title" component="topic/title">{title}</span>
+					</h1>
+					
+					<!-- Resolved/Open Status Button -->
+					<span component="topic/resolved-status" class="resolved-status-btn" data-tid="{tid}" style="cursor: pointer;">
+						{{{ if resolved }}}
+						<span class="badge bg-success d-inline-flex flex-column align-items-center px-3 py-2">
+							<i class="fa fa-check-circle fa-lg mb-1"></i>
+							<small style="font-size: 0.7rem;">Resolved</small>
+						</span>
+						{{{ else }}}
+						<span class="badge bg-danger d-inline-flex flex-column align-items-center px-3 py-2">
+							<i class="fa fa-circle-o fa-lg mb-1"></i>
+							<small style="font-size: 0.7rem;">Open</small>
+						</span>
+						{{{ end }}}
+					</span>
+				</div>
 
 				<div class="topic-info d-flex gap-2 align-items-center flex-wrap {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ end }}}">
 					<span component="topic/labels" class="d-flex gap-2 {{{ if (!scheduled && (!pinned && (!locked && (!icons.length && (!oldCid || (oldCid == "-1")))))) }}}hidden{{{ end }}}">

@@ -128,45 +128,90 @@ define('forum/topic', [
 	}
 
 	function handleResolvedToggle() {
-	// Mark as resolved
+		// Handle clicking the status button itself
+		$(document).on('click', '[component="topic/resolved-status"]', async function (e) {
+			e.preventDefault();
+			
+			const { tid, resolved } = ajaxify.data;
+			
+			// Check if user has permission (you might want to add a permission check here)
+			const isResolved = resolved === true || resolved === 1;
+			
+			try {
+				if (isResolved) {
+					// Unmark as resolved
+					await api.del(`/api/v3/topics/${tid}/resolved`);
+					updateResolvedUI(false);
+				} else {
+					// Mark as resolved
+					await api.put(`/api/v3/topics/${tid}/resolved`, { resolved: 1 });
+					updateResolvedUI(true);
+				}
+			} catch (err) {
+				console.error(err);
+				alerts.error(err?.message || err);
+			}
+		});
+
+		// Mark as resolved (from dropdown menu)
 		$(document).on('click', '[component="topic/mark-resolved"]', async function (e) {
 			e.preventDefault();
-
 			const { tid } = ajaxify.data;
 
 			try {
 				await api.put(`/api/v3/topics/${tid}/resolved`, { resolved: 1 });
-
-				// UI update immediately
-				$('[component="topic/mark-resolved"]').closest('li').addClass('hidden');
-				$('[component="topic/unmark-resolved"]').closest('li').removeClass('hidden');
-
-				ajaxify.data.resolved = true;
+				updateResolvedUI(true);
 			} catch (err) {
 				console.error(err);
 				alerts.error(err?.message || err);
 			}
 		});
 
-		// Mark as unresolved
+		// Mark as unresolved (from dropdown menu)
 		$(document).on('click', '[component="topic/unmark-resolved"]', async function (e) {
 			e.preventDefault();
-
 			const { tid } = ajaxify.data;
 
 			try {
 				await api.del(`/api/v3/topics/${tid}/resolved`);
-
-				// UI update immediately
-				$('[component="topic/unmark-resolved"]').closest('li').addClass('hidden');
-				$('[component="topic/mark-resolved"]').closest('li').removeClass('hidden');
-
-				ajaxify.data.resolved = false;
+				updateResolvedUI(false);
 			} catch (err) {
 				console.error(err);
 				alerts.error(err?.message || err);
 			}
 		});
+
+		function updateResolvedUI(isResolved) {
+			// Update the status button
+			const statusBtn = $('[component="topic/resolved-status"]');
+			if (isResolved) {
+				statusBtn.html(`
+					<span class="badge bg-success d-inline-flex flex-column align-items-center px-3 py-2">
+						<i class="fa fa-check-circle fa-lg mb-1"></i>
+						<small>Resolved</small>
+					</span>
+				`);
+			} else {
+				statusBtn.html(`
+					<span class="badge bg-danger d-inline-flex flex-column align-items-center px-3 py-2">
+						<i class="fa fa-circle-o fa-lg mb-1"></i>
+						<small>Open</small>
+					</span>
+				`);
+			}
+
+			// Update dropdown menu items
+			if (isResolved) {
+				$('[component="topic/mark-resolved"]').closest('li').addClass('hidden');
+				$('[component="topic/unmark-resolved"]').closest('li').removeClass('hidden');
+			} else {
+				$('[component="topic/unmark-resolved"]').closest('li').addClass('hidden');
+				$('[component="topic/mark-resolved"]').closest('li').removeClass('hidden');
+			}
+
+			// Update ajaxify data
+			ajaxify.data.resolved = isResolved;
+		}
 	}
 
 
