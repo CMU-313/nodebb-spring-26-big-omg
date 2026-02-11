@@ -1,3 +1,82 @@
+# Team Big-OMG — NodeBB Course Q&A Enhancement
+Team members: Jose German, Tony He, Zhanhan Liu, Jessica Zheng
+
+## Our Project
+We are extending NodeBB to better support course-style Q&A (Piazza-like workflows) without modifying the core engine.
+
+## Project Planning
+
+### Goal
+Build a course Q&A enhancement layer on top of NodeBB focused on (1) question resolution flow and (2) structured asking.
+
+### Core Features
+**Feature A — Question Status & Accepted Answer**
+- Add `Open/Resolved` status to topics
+- Allow topic owner or staff to mark resolved
+- Allow selecting an `Accepted Answer` (and auto-resolve)
+- Show status badge on topic list + topic page
+- Filter topics by status
+
+**Feature B — Structured Question Template**
+- Encourage/require fields: `Course`, `Assignment/Unit`, `Urgency`
+- Save fields as topic metadata; auto-tag by course
+- Display key fields on topic list; filter by course tag
+
+### Sprint Timeline
+**Sprint 1 (due 2/10)**  
+Deliver a demo-able MVP of Feature A (ask → answer → accept → resolved + badges/filter).
+
+**Sprint 2 (due 2/26)**  
+Implement Feature B, add automated tests + CI stability, and write `UserGuide.md`.
+
+## Team Roles
+- Developer A — Backend Logic  
+  Implement topic status, accepted answer logic, permissions, and related API/routes.
+- Developer B — Frontend & UI  
+  Implement badges, buttons, list display, filters, and overall interface updates.
+- Documentation Lead — Planning & User Guide  
+  Maintain README, project planning, UserGuide.md, and feature descriptions.
+- Process & QA Lead — Testing & Workflow  
+  Write automated tests, manage GitHub Actions/CI, maintain issues, project board, and meeting notes.
+
+### Risks & Mitigation
+- NodeBB template complexity → implement via plugin/extension points, minimize core changes
+- Time constraints → Feature A first, keep Feature B lightweight
+- Testing scope → focus on state transitions + metadata persistence
+
+## User Stories
+### User Story 1 — Resolve a Question
+As a student,
+I want to mark my question as resolved,
+so that others know the issue has been solved.
+
+**Acceptance Criteria**
+- A topic has an Open/Resolved status.
+- The topic owner or staff can change the status.
+- The status is visible on the topic list and topic page.
+
+### User Story 2 — Accept an Answer
+As a student,
+I want to select an accepted answer,
+so that the best response is highlighted.
+
+**Acceptance Criteria**
+- The topic owner can mark one reply as Accepted Answer.
+- The accepted reply is visually highlighted.
+- The topic status automatically changes to Resolved.
+
+### User Story 3 — Structured Question Fields
+As a student,
+I want to provide course and assignment info when asking,
+so that my question is easier to categorize and find.
+
+**Acceptance Criteria**
+- The post form allows Course, Assignment, and Urgency fields.
+- The system stores these fields as metadata.
+- Topics can be filtered by Course tag.
+
+<details>
+<summary>Upstream NodeBB README (reference)</summary>
 # ![NodeBB](public/images/sm-card.png)
 
 ![Team Contribution Summary](https://raw.githubusercontent.com/CMU-313/NodeBB/gittogether-svg/activity.svg)
@@ -84,3 +163,4 @@ Interested in a sublicense agreement for use of NodeBB in a non-free/restrictive
 * Unofficial IRC community &ndash; channel `#nodebb` on Libera.chat
 * [Follow us on Twitter](http://www.twitter.com/NodeBB/ "NodeBB Twitter")
 * [Like us on Facebook](http://www.facebook.com/NodeBB/ "NodeBB Facebook")
+</details>
