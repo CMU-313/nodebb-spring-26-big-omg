@@ -29,53 +29,16 @@
 		<meta itemprop="userInteractionCount" content="{upvotes}">
 	</div>
 
-	<div class="d-flex flex-column gap-3">
+  	<div class="d-flex flex-column gap-3">
 		<div class="d-flex gap-2 flex-wrap flex-column flex-md-row {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ else }}}justify-content-between{{{ end }}}">
-			<div class="d-flex flex-column gap-3">
-				<div class="d-flex align-items-center gap-3 {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ end }}}">
-					<h1 component="post/header" class="tracking-tight fw-semibold fs-3 mb-0 text-break">
-						<span class="topic-title" component="topic/title">{title}</span>
-					</h1>
-					
-					<!-- Resolved/Open Status Button -->
-					<span component="topic/resolved-status" class="resolved-status-btn" data-tid="{tid}" style="cursor: pointer;">
-						{{{ if resolved }}}
-						<span class="badge bg-success d-inline-flex flex-column align-items-center px-3 py-2">
-							<i class="fa fa-check-circle fa-lg mb-1"></i>
-							<small style="font-size: 0.7rem;">Resolved</small>
-						</span>
-						{{{ else }}}
-						<span class="badge bg-danger d-inline-flex flex-column align-items-center px-3 py-2">
-							<i class="fa fa-circle-o fa-lg mb-1"></i>
-							<small style="font-size: 0.7rem;">Open</small>
-						</span>
-						{{{ end }}}
-					</span>
-				</div>
-
-				<div class="topic-info d-flex gap-2 align-items-center flex-wrap {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ end }}}">
-					<span component="topic/labels" class="d-flex gap-2 {{{ if (!scheduled && (!pinned && (!locked && (!icons.length && (!oldCid || (oldCid == "-1")))))) }}}hidden{{{ end }}}">
-						<span component="topic/scheduled" class="badge badge border border-gray-300 text-body {{{ if !scheduled }}}hidden{{{ end }}}">
-							<i class="fa fa-clock-o"></i> [[topic:scheduled]]
-						</span>
-						<span component="topic/pinned" class="badge badge border border-gray-300 text-body {{{ if (scheduled || !pinned) }}}hidden{{{ end }}}">
-							<i class="fa fa-thumb-tack"></i> {{{ if !pinExpiry }}}[[topic:pinned]]{{{ else }}}[[topic:pinned-with-expiry, {isoTimeToLocaleString(./pinExpiryISO, config.userLang)}]]{{{ end }}}
-						</span>
-						<span component="topic/locked" class="badge badge border border-gray-300 text-body {{{ if !locked }}}hidden{{{ end }}}">
-							<i class="fa fa-lock"></i> [[topic:locked]]
-						</span>
-						<a component="topic/moved" href="{config.relative_path}/category/{oldCid}" class="badge badge border border-gray-300 text-body text-decoration-none {{{ if (!oldCid || (oldCid == "-1")) }}}hidden{{{ end }}}">
-							<i class="fa fa-arrow-circle-right"></i> {{{ if privileges.isAdminOrMod }}}[[topic:moved-from, {oldCategory.name}]]{{{ else }}}[[topic:moved]]{{{ end }}}
-						</a>
-						{{{each icons}}}<span class="lh-1">{@value}</span>{{{end}}}
-					</span>
-					{buildCategoryLabel(category, "a", "border")}
-					<div data-tid="{./tid}" component="topic/tags" class="lh-1 tags tag-list d-flex flex-wrap hidden-xs hidden-empty gap-2"><!-- IMPORT partials/topic/tags.tpl --></div>
-					<div class="d-flex gap-2" component="topic/stats"><!-- IMPORT partials/topic/stats.tpl --></div>
-				</div>
+			<div class="topic-info d-flex gap-2 align-items-center flex-wrap {{{ if config.theme.centerHeaderElements }}}justify-content-center{{{ end }}}">
+				<span component="topic/labels" class="d-flex gap-2">
+					<!-- IMPORT partials/topic/resolved-status-icon.tpl -->
+				</span>
 			</div>
 			<div class="d-flex flex-wrap gap-2 align-items-start mt-2 hidden-empty {{{ if greaterthan(thumbs.length, "4") }}}thumbs-collapsed{{{ end }}}" component="topic/thumb/list"><!-- IMPORT partials/topic/thumbs.tpl --></div>
 		</div>
+	</div>
 
 		<div class="row mb-4 mb-lg-0">
 			<div class="topic {{{ if widgets.sidebar.length }}}col-lg-9 col-sm-12{{{ else }}}col-lg-12{{{ end }}}">
