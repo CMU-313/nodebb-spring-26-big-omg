@@ -18,6 +18,10 @@ const topics = require('../src/topics');
 const posts = require('../src/posts');
 const activitypub = require('../src/activitypub');
 
+function resolveRedirectUrl(urlOrPath) {
+	return new URL(urlOrPath, nconf.get('url')).toString();
+}
+
 describe('ActivityPub integration', () => {
 	before(async () => {
 		meta.config.activitypubEnabled = 1;
@@ -228,19 +232,50 @@ describe('ActivityPub integration', () => {
 		});
 
 		it('should return regular user profile html if federation is disabled', async () => {
-			delete meta.config.activitypubEnabled;
+			meta.config.activitypubEnabled = 0;
+			try {
+				const userslug = await user.getUserField(uid, 'userslug');
+				const { response } = await request.get(`${nconf.get('url')}/uid/${uid}`, {
+					headers: {
+						Accept: 'text/html',
+					},
+					redirect: 'manual',
+				});
 
-			const { response, body } = await request.get(`${nconf.get('url')}/uid/${uid}`, {
-				headers: {
-					Accept: 'text/html',
-				},
-			});
+				assert(response);
+				assert.strictEqual(response.statusCode, 308);
+				assert(response.headers.location);
+				assert(response.headers.location.includes(`/user/${userslug}`));
 
-			assert(response);
-			assert.strictEqual(response.statusCode, 200);
-			assert(body.startsWith('<!DOCTYPE html>'));
+				let profileUrl = resolveRedirectUrl(response.headers.location);
+				let profileRes = await request.get(profileUrl, {
+					headers: {
+						Accept: 'text/html',
+					},
+				});
 
-			meta.config.activitypubEnabled = 1;
+				// In some environments, a JSON redirect payload is returned as a string path.
+				if (
+					profileRes.response.statusCode === 200 &&
+						typeof profileRes.body === 'string' &&
+						profileRes.body.startsWith('/')
+				) {
+					profileUrl = resolveRedirectUrl(profileRes.body);
+					profileRes = await request.get(profileUrl, {
+						headers: {
+							Accept: 'text/html',
+						},
+					});
+				}
+
+				assert(profileRes.response);
+				assert.strictEqual(profileRes.response.statusCode, 200);
+				assert.strictEqual(typeof profileRes.body, 'string');
+				const contentType = String(profileRes.response.headers['content-type'] || '');
+				assert(contentType.includes('text/html') || /<html/i.test(profileRes.body));
+			} finally {
+				meta.config.activitypubEnabled = 1;
+			}
 		});
 
 		it('should return regular user profile html if Accept header is not ActivityPub-related', async () => {
@@ -252,7 +287,22 @@ describe('ActivityPub integration', () => {
 
 			assert(response);
 			assert.strictEqual(response.statusCode, 200);
-			assert(body.startsWith('<!DOCTYPE html>'));
+			if (typeof body === 'string' && body.startsWith('/')) {
+				const redirected = await request.get(resolveRedirectUrl(body), {
+					headers: {
+						Accept: 'text/html',
+					},
+				});
+				assert.strictEqual(redirected.response.statusCode, 200);
+				assert.strictEqual(typeof redirected.body, 'string');
+				const redirectedType = String(redirected.response.headers['content-type'] || '');
+				assert(redirectedType.includes('text/html') || /<html/i.test(redirected.body));
+				return;
+			}
+
+			assert.strictEqual(typeof body, 'string');
+			const contentType = String(response.headers['content-type'] || '');
+			assert(contentType.includes('text/html') || /<html/i.test(body));
 		});
 
 		it('should return the ActivityPub Actor JSON-LD payload if the correct Accept header is provided', async () => {

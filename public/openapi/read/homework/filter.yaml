@@ -1,0 +1,157 @@
+get:
+  tags:
+    - topics
+  summary: Filter topics by homework tag
+  parameters:
+    - in: query
+      name: homework
+      required: true
+      schema:
+        type: string
+      description: Homework tag to match (e.g. hw1)
+      example: hw1
+    - in: query
+      name: keyword
+      required: false
+      schema:
+        type: string
+      description: Optional keyword to match against topic title and tags
+      example: dynamic
+    - in: query
+      name: page
+      required: false
+      schema:
+        type: number
+      description: 1-based page number
+      example: 1
+    - in: query
+      name: perPage
+      required: false
+      schema:
+        type: number
+      description: Number of topics per page
+      example: 20
+    - in: query
+      name: sort
+      required: false
+      schema:
+        type: string
+        enum: ['recent', 'old', 'create', 'posts', 'votes', 'views']
+      description: Sort order for source topic collection
+      example: recent
+    - in: query
+      name: term
+      required: false
+      schema:
+        type: string
+        enum: ['alltime', 'day', 'week', 'month', 'year']
+      description: Time range for source topic collection
+      example: alltime
+    - in: query
+      name: filter
+      required: false
+      schema:
+        type: string
+        enum: ['', 'new', 'watched', 'unreplied']
+      description: Topic filter
+      example: ''
+    - in: query
+      name: cid
+      required: false
+      schema:
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: number
+      description: Category ids (comma-separated or repeated)
+      example: '1,2'
+  responses:
+    "200":
+      description: Filtered topic list
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              homework:
+                type: string
+              keyword:
+                type: string
+              sort:
+                type: string
+              term:
+                type: string
+              filter:
+                type: string
+              cids:
+                type: array
+                items:
+                  type: number
+              pagination:
+                type: object
+                properties:
+                  page:
+                    type: number
+                  perPage:
+                    type: number
+                  total:
+                    type: number
+                  pageCount:
+                    type: number
+                  hasNext:
+                    type: boolean
+                  hasPrev:
+                    type: boolean
+              topics:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    tid:
+                      type: number
+                    title:
+                      type: string
+                    slug:
+                      type: string
+                    url:
+                      type: string
+                    cid:
+                      type: number
+                    category:
+                      type: object
+                      nullable: true
+                      properties:
+                        cid:
+                          type: number
+                        name:
+                          type: string
+                        slug:
+                          type: string
+                    user:
+                      type: object
+                      nullable: true
+                      properties:
+                        uid:
+                          type: number
+                        username:
+                          type: string
+                        userslug:
+                          type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                    timestamp:
+                      type: number
+                    lastposttime:
+                      type: number
+    "400":
+      description: Missing/invalid homework query parameter
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string

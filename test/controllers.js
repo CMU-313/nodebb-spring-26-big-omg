@@ -234,6 +234,54 @@ describe('Controllers', () => {
 		});
 	});
 
+	describe('homework filter api', () => {
+		let hw1Tid;
+		let hw2Tid;
+
+		before(async () => {
+			const hw1Topic = await topics.post({
+				uid: fooUid,
+				cid: cid,
+				title: 'HW1 Dynamic Programming Question',
+				content: 'How do we build the DP state transition?',
+				tags: ['hw1', 'dp'],
+			});
+			hw1Tid = hw1Topic.topicData.tid;
+
+			const hw2Topic = await topics.post({
+				uid: fooUid,
+				cid: cid,
+				title: 'HW2 Graph Question',
+				content: 'Need help with BFS proof',
+				tags: ['hw2', 'graph'],
+			});
+			hw2Tid = hw2Topic.topicData.tid;
+		});
+
+		it('should filter topics by homework tag', async () => {
+			const { response, body } = await request.get(`${nconf.get('url')}/api/homework/filter?homework=hw1`);
+			assert.strictEqual(response.statusCode, 200);
+			assert(Array.isArray(body.topics));
+			const tids = body.topics.map(topic => topic.tid);
+			assert(tids.includes(hw1Tid));
+			assert(!tids.includes(hw2Tid));
+		});
+
+		it('should further filter topics by keyword', async () => {
+			const { response, body } = await request.get(`${nconf.get('url')}/api/homework/filter?homework=hw1&keyword=dynamic`);
+			assert.strictEqual(response.statusCode, 200);
+			assert(Array.isArray(body.topics));
+			assert.strictEqual(body.topics.length, 1);
+			assert.strictEqual(body.topics[0].tid, hw1Tid);
+		});
+
+		it('should return 400 if homework tag is missing', async () => {
+			const { response, body } = await request.get(`${nconf.get('url')}/api/homework/filter`);
+			assert.strictEqual(response.statusCode, 400);
+			assert(body.error);
+		});
+	});
+
 	it('should load /register/complete', async () => {
 		const jar = request.jar();
 		const csrf_token = await helpers.getCsrfToken(jar);

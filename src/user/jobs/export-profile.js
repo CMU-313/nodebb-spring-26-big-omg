@@ -19,6 +19,14 @@ const prestart = require('../../prestart');
 prestart.loadConfig(configFile);
 prestart.setupWinston();
 
+if (process.env.NODEBB_USE_TEST_DB === '1') {
+	const dbType = nconf.get('database');
+	const testDbConfig = nconf.get('test_database');
+	if (dbType && testDbConfig) {
+		nconf.set(dbType, testDbConfig);
+	}
+}
+
 const db = require('../../database');
 const batch = require('../../batch');
 
@@ -58,7 +66,9 @@ process.on('message', async (msg) => {
 			getSetData(`uid:${targetUid}:downvote`, 'post:', targetUid),
 			getSetData(`following:${targetUid}`, 'user:', targetUid),
 		]);
-		delete userData.password;
+		if (userData) {
+			delete userData.password;
+		}
 
 		let chatData = [];
 		await batch.processSortedSet(`uid:${targetUid}:chat:rooms`, async (roomIds) => {
