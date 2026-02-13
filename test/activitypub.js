@@ -18,6 +18,10 @@ const topics = require('../src/topics');
 const posts = require('../src/posts');
 const activitypub = require('../src/activitypub');
 
+function resolveRedirectUrl(urlOrPath) {
+	return new URL(urlOrPath, nconf.get('url')).toString();
+}
+
 describe('ActivityPub integration', () => {
 	before(async () => {
 		meta.config.activitypubEnabled = 1;
@@ -243,9 +247,7 @@ describe('ActivityPub integration', () => {
 				assert(response.headers.location);
 				assert(response.headers.location.includes(`/user/${userslug}`));
 
-				let profileUrl = response.headers.location.startsWith('http') ?
-					response.headers.location :
-					`${nconf.get('url')}${response.headers.location}`;
+				let profileUrl = resolveRedirectUrl(response.headers.location);
 				let profileRes = await request.get(profileUrl, {
 					headers: {
 						Accept: 'text/html',
@@ -258,7 +260,7 @@ describe('ActivityPub integration', () => {
 						typeof profileRes.body === 'string' &&
 						profileRes.body.startsWith('/')
 				) {
-					profileUrl = `${nconf.get('url')}${profileRes.body}`;
+					profileUrl = resolveRedirectUrl(profileRes.body);
 					profileRes = await request.get(profileUrl, {
 						headers: {
 							Accept: 'text/html',
@@ -286,7 +288,7 @@ describe('ActivityPub integration', () => {
 			assert(response);
 			assert.strictEqual(response.statusCode, 200);
 			if (typeof body === 'string' && body.startsWith('/')) {
-				const redirected = await request.get(`${nconf.get('url')}${body}`, {
+				const redirected = await request.get(resolveRedirectUrl(body), {
 					headers: {
 						Accept: 'text/html',
 					},
