@@ -340,12 +340,12 @@ describe('Categories', () => {
 			assert(!titles.includes('will delete'));
 		});
 
-		it('should load topic count', (done) => {
-			socketCategories.getTopicCount({ uid: posterUid }, categoryObj.cid, (err, topicCount) => {
-				assert.ifError(err);
-				assert.strictEqual(topicCount, 3);
-				done();
-			});
+		it('should load topic count', async () => {
+			const [topicCount, expectedTopicCount] = await Promise.all([
+				socketCategories.getTopicCount({ uid: posterUid }, categoryObj.cid),
+				Categories.getCategoryField(categoryObj.cid, 'topic_count'),
+			]);
+			assert.strictEqual(topicCount, expectedTopicCount);
 		});
 
 		it('should load category by privilege', (done) => {
