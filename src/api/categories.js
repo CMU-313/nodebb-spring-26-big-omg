@@ -115,11 +115,17 @@ categoriesAPI.getChildren = async (caller, { cid, start }) => {
 };
 
 categoriesAPI.getTopics = async (caller, data) => {
-	data.query = data.query || {};
+	const query = { ...(data.query || {}) };
+	['author', 'tag', 'resolved', 'status'].forEach((key) => {
+		if (data[key] !== undefined && query[key] === undefined) {
+			query[key] = data[key];
+		}
+	});
+	data.query = query;
 	const [userPrivileges, settings, targetUid] = await Promise.all([
 		privileges.categories.get(data.cid, caller.uid),
 		user.getSettings(caller.uid),
-		user.getUidByUserslug(data.query.author),
+		user.getUidByUserslug(query.author),
 	]);
 
 	if (!userPrivileges.read) {
@@ -146,8 +152,8 @@ categoriesAPI.getTopics = async (caller, data) => {
 		stop,
 		sort,
 		settings,
-		query: data.query,
-		tag: data.query.tag,
+		query: query,
+		tag: query.tag,
 		targetUid,
 	});
 	categories.modifyTopicsByPrivilege(result.topics, userPrivileges);

@@ -32,6 +32,15 @@ module.exports = function (Categories) {
 			Categories.getPinnedTids({ ...data, start: 0, stop: -1 }),
 			Categories.buildTopicsSortedSet(data),
 		]);
+		const resolvedState = getResolvedState(data);
+		if (resolvedState !== null) {
+			const filteredTids = await getFilteredTopicIdsByResolved({
+				pinnedTids,
+				set,
+				resolvedState,
+			});
+			return filteredTids.slice(data.start, data.stop !== -1 ? data.stop + 1 : undefined);
+		}
 
 		const totalPinnedCount = pinnedTids.length;
 		const pinnedTidsOnPage = pinnedTids.slice(data.start, data.stop !== -1 ? data.stop + 1 : undefined);
@@ -79,6 +88,19 @@ module.exports = function (Categories) {
 				data: data,
 			});
 			return result && result.topicCount;
+		}
+		const resolvedState = getResolvedState(data);
+		if (resolvedState !== null) {
+			const [pinnedTids, set] = await Promise.all([
+				Categories.getPinnedTids({ ...data, start: 0, stop: -1 }),
+				Categories.buildTopicsSortedSet(data),
+			]);
+			const filteredTids = await getFilteredTopicIdsByResolved({
+				pinnedTids,
+				set,
+				resolvedState,
+			});
+			return filteredTids.length;
 		}
 		const set = await Categories.buildTopicsSortedSet(data);
 		if (Array.isArray(set)) {
@@ -214,6 +236,63 @@ module.exports = function (Categories) {
 		const scores = await db.sortedSetScores('topics:scheduled', tids);
 		const now = Date.now();
 		return tids.filter((tid, index) => tid && (!scores[index] || scores[index] <= now));
+	}
+
+	async function getNormalTids(set, start, stop) {
+		if (Array.isArray(set)) {
+			const weights = set.map((s, index) => (index ? 0 : 1));
+			return await db.getSortedSetRevIntersect({ sets: set, start: start, stop: stop, weights: weights });
+		}
+		return await db.getSortedSetRevRange(set, start, stop);
+	}
+
+	async function getFilteredTopicIdsByResolved({ pinnedTids, set, resolvedState }) {
+		const normalTids = await getNormalTids(set, 0, -1);
+		const pinnedTidSet = new Set(pinnedTids);
+		const dedupedNormal = normalTids.filter(tid => !pinnedTidSet.has(tid));
+		const allTids = pinnedTids.concat(dedupedNormal);
+
+		if (!allTids.length) {
+			return [];
+		}
+
+		const topicData = await topics.getTopicsFields(allTids, ['tid', 'resolved']);
+		return topicData
+			.filter(topic => topic && (resolvedState ? Number(topic.resolved) === 1 : Number(topic.resolved) !== 1))
+			.map(topic => topic.tid);
+	}
+
+	function getResolvedState(data) {
+		const raw = (data.query && data.query.resolved !== undefined) ? data.query.resolved :
+			(data.query && data.query.status !== undefined) ? data.query.status :
+				data.resolved !== undefined ? data.resolved : data.status;
+
+		if (raw === undefined || raw === null || raw === '') {
+			return null;
+		}
+
+		if (typeof raw === 'boolean') {
+			return raw ? 1 : 0;
+		}
+
+		if (typeof raw === 'number') {
+			if (raw === 1) {
+				return 1;
+			}
+			if (raw === 0) {
+				return 0;
+			}
+			return null;
+		}
+
+		const normalized = String(raw).trim().toLowerCase();
+		if (['1', 'true', 'resolved'].includes(normalized)) {
+			return 1;
+		}
+		if (['0', 'false', 'unresolved'].includes(normalized)) {
+			return 0;
+		}
+		return null;
 	}
 
 	Categories.notifyCategoryFollowers = async (postData, exceptUid) => {

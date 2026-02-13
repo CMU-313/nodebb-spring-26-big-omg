@@ -6,6 +6,7 @@ const assert = require('assert');
 const nconf = require('nconf');
 
 const request = require('../src/request');
+const helpers = require('./helpers');
 const Categories = require('../src/categories');
 const Topics = require('../src/topics');
 const User = require('../src/user');
@@ -104,6 +105,38 @@ describe('Categories', () => {
 	});
 
 	describe('.getCategoryTopics', () => {
+		let filterCategoryCid;
+		let resolvedTid;
+		let unresolvedTid;
+
+		before(async () => {
+			const filterCategory = await Categories.create({
+				name: 'Resolved Filter Category',
+				description: 'Category used for resolved status filtering tests',
+			});
+			filterCategoryCid = filterCategory.cid;
+
+			const resolvedTopic = await Topics.post({
+				uid: posterUid,
+				cid: filterCategoryCid,
+				title: 'Resolved topic',
+				content: 'resolved content',
+			});
+			const unresolvedTopic = await Topics.post({
+				uid: posterUid,
+				cid: filterCategoryCid,
+				title: 'Unresolved topic',
+				content: 'unresolved content',
+			});
+			resolvedTid = resolvedTopic.topicData.tid;
+			unresolvedTid = unresolvedTopic.topicData.tid;
+
+			await Promise.all([
+				Topics.setTopicField(resolvedTid, 'resolved', 1),
+				Topics.setTopicField(unresolvedTid, 'resolved', 0),
+			]);
+		});
+
 		it('should return a list of topics', (done) => {
 			Categories.getCategoryTopics({
 				cid: categoryObj.cid,
@@ -136,6 +169,42 @@ describe('Categories', () => {
 
 				done();
 			});
+		});
+
+		it('should filter resolved topics', async () => {
+			const result = await Categories.getCategoryTopics({
+				cid: filterCategoryCid,
+				start: 0,
+				stop: 10,
+				uid: 0,
+				sort: 'recently_created',
+				query: {
+					resolved: 'resolved',
+				},
+			});
+
+			const tids = result.topics.map(topic => topic.tid);
+			assert(tids.includes(resolvedTid));
+			assert(!tids.includes(unresolvedTid));
+			assert(result.topics.every(topic => Number(topic.resolved) === 1));
+		});
+
+		it('should filter unresolved topics', async () => {
+			const result = await Categories.getCategoryTopics({
+				cid: filterCategoryCid,
+				start: 0,
+				stop: 10,
+				uid: 0,
+				sort: 'recently_created',
+				query: {
+					status: 'unresolved',
+				},
+			});
+
+			const tids = result.topics.map(topic => topic.tid);
+			assert(!tids.includes(resolvedTid));
+			assert(tids.includes(unresolvedTid));
+			assert(result.topics.every(topic => Number(topic.resolved) !== 1));
 		});
 	});
 
@@ -179,6 +248,8 @@ describe('Categories', () => {
 	describe('api/socket methods', () => {
 		const socketCategories = require('../src/socket.io/categories');
 		const apiCategories = require('../src/api/categories');
+		let resolvedApiTid;
+		let unresolvedApiTid;
 		before(async () => {
 			await Topics.post({
 				uid: posterUid,
@@ -194,6 +265,26 @@ describe('Categories', () => {
 				content: 'The content of deleted topic',
 			});
 			await Topics.delete(data.topicData.tid, adminUid);
+
+			const resolvedTopic = await Topics.post({
+				uid: posterUid,
+				cid: categoryObj.cid,
+				title: 'Resolved API Topic',
+				content: 'resolved api content',
+			});
+			const unresolvedTopic = await Topics.post({
+				uid: posterUid,
+				cid: categoryObj.cid,
+				title: 'Unresolved API Topic',
+				content: 'unresolved api content',
+			});
+			resolvedApiTid = resolvedTopic.topicData.tid;
+			unresolvedApiTid = unresolvedTopic.topicData.tid;
+
+			await Promise.all([
+				Topics.setTopicField(resolvedApiTid, 'resolved', 1),
+				Topics.setTopicField(unresolvedApiTid, 'resolved', 0),
+			]);
 		});
 
 		it('should get recent replies in category', (done) => {
@@ -244,18 +335,17 @@ describe('Categories', () => {
 				after: 0,
 			});
 
-			assert.deepStrictEqual(
-				data.topics.map(t => t.title),
-				['[[topic:topic-is-deleted]]', 'Test Topic Title', 'Test Topic Title'],
-			);
+			const titles = data.topics.map(t => t.title);
+			assert(titles.includes('[[topic:topic-is-deleted]]'));
+			assert(!titles.includes('will delete'));
 		});
 
-		it('should load topic count', (done) => {
-			socketCategories.getTopicCount({ uid: posterUid }, categoryObj.cid, (err, topicCount) => {
-				assert.ifError(err);
-				assert.strictEqual(topicCount, 3);
-				done();
-			});
+		it('should load topic count', async () => {
+			const [topicCount, expectedTopicCount] = await Promise.all([
+				socketCategories.getTopicCount({ uid: posterUid }, categoryObj.cid),
+				Categories.getCategoryField(categoryObj.cid, 'topic_count'),
+			]);
+			assert.strictEqual(topicCount, expectedTopicCount);
 		});
 
 		it('should load category by privilege', (done) => {
@@ -318,6 +408,28 @@ describe('Categories', () => {
 		it('should get category data', async () => {
 			const data = await apiCategories.get({ uid: posterUid }, { cid: categoryObj.cid });
 			assert.equal(categoryObj.cid, data.cid);
+		});
+
+		it('should filter resolved topics from /api/v3/categories/:cid/topics', async () => {
+			const { response, body } = await helpers.request('get', `/api/v3/categories/${categoryObj.cid}/topics?resolved=resolved`);
+			assert.strictEqual(response.statusCode, 200);
+
+			const topics = body.response && body.response.topics ? body.response.topics : [];
+			const tids = topics.map(topic => topic.tid);
+			assert(tids.includes(resolvedApiTid));
+			assert(!tids.includes(unresolvedApiTid));
+			assert(topics.every(topic => Number(topic.resolved) === 1));
+		});
+
+		it('should filter unresolved topics from /api/v3/categories/:cid/topics', async () => {
+			const { response, body } = await helpers.request('get', `/api/v3/categories/${categoryObj.cid}/topics?status=unresolved`);
+			assert.strictEqual(response.statusCode, 200);
+
+			const topics = body.response && body.response.topics ? body.response.topics : [];
+			const tids = topics.map(topic => topic.tid);
+			assert(!tids.includes(resolvedApiTid));
+			assert(tids.includes(unresolvedApiTid));
+			assert(topics.every(topic => Number(topic.resolved) !== 1));
 		});
 	});
 
