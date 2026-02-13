@@ -22,6 +22,7 @@ module.exports = function (app, middleware, controllers) {
 	router.get('/unread/total', [...middlewares, middleware.ensureLoggedIn], helpers.tryRoute(controllers.unread.unreadTotal));
 	router.get('/topic/teaser/:topic_id', [...middlewares], helpers.tryRoute(controllers.topics.teaser));
 	router.get('/topic/pagination/:topic_id', [...middlewares], helpers.tryRoute(controllers.topics.pagination));
+	router.get('/homework/filter', [...middlewares], helpers.tryRoute(controllers.homeworkFilter.get));
 
 	const upload = require('../middleware/multer');
 

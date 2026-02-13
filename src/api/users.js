@@ -696,7 +696,10 @@ usersAPI.generateExport = async (caller, { uid, type }) => {
 	}
 
 	const child = require('child_process').fork(`./src/user/jobs/export-${type}.js`, [], {
-		env: process.env,
+		env: {
+			...process.env,
+			NODEBB_USE_TEST_DB: process.env.CI ? '1' : '',
+		},
 	});
 	child.send({ uid });
 	child.on('error', async (err) => {
