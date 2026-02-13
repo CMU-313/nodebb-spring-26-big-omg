@@ -128,7 +128,7 @@ define('forum/topic', [
 	}
 
 	function handleResolvedToggle() {
-	// Mark as resolved
+		// Mark as resolved
 		$(document).on('click', '[component="topic/mark-resolved"]', async function (e) {
 			e.preventDefault();
 
@@ -168,7 +168,6 @@ define('forum/topic', [
 			}
 		});
 	}
-
 
 	Topic.toTop = function () {
 		navigator.scrollTop(0);

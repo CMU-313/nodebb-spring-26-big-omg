@@ -21,10 +21,26 @@
 	<span class="fw-bold" title="{viewcount}">{humanReadableNumber(viewcount)}</span>
 	<span class="hidden-xs text-lowercase fw-normal">[[global:views]]</span>
 </span>
+
 {{{ if ./followercount }}}
 <span class="badge text-body border border-gray-300 stats text-xs">
 	<i class="fa fa-fw fa-bell-o visible-xs-inline" title="[[global:watching]]"></i>
 	<span class="fw-bold" title="{viewcount}">{humanReadableNumber(followercount)}</span>
 	<span class="hidden-xs text-lowercase fw-normal">[[global:watching]]</span>
+</span>
+{{{ end }}}
+
+<!-- Resolved/Open Status Badge -->
+{{{ if topic.isResolved }}}
+<span component="topic/resolved-status"
+      class="badge text-body border border-success text-success stats text-xs">
+	<i class="fa fa-fw fa-check-circle visible-xs-inline"></i>
+	<span class="fw-bold">Resolved</span>
+</span>
+{{{ else }}}
+<span component="topic/resolved-status"
+      class="badge text-body border border-danger text-danger stats text-xs">
+	<i class="fa fa-fw fa-circle-o visible-xs-inline"></i>
+	<span class="fw-bold">Open</span>
 </span>
 {{{ end }}}
