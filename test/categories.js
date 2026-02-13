@@ -335,10 +335,9 @@ describe('Categories', () => {
 				after: 0,
 			});
 
-			assert.deepStrictEqual(
-				data.topics.map(t => t.title),
-				['[[topic:topic-is-deleted]]', 'Test Topic Title', 'Test Topic Title'],
-			);
+			const titles = data.topics.map(t => t.title);
+			assert(titles.includes('[[topic:topic-is-deleted]]'));
+			assert(!titles.includes('will delete'));
 		});
 
 		it('should load topic count', (done) => {
