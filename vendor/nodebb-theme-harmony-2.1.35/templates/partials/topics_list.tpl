@@ -86,7 +86,19 @@
 		</div>
 
 		<div class="d-flex p-0 col-lg-5 col-12 align-content-stretch">
-			<div class="meta stats d-none d-lg-grid col-6 gap-1 pe-2 text-muted" style="grid-template-columns: {{{ if !reputation:disabled }}}1fr{{{ end }}} 1fr 1fr;">
+			<div class="meta stats d-none d-lg-flex col-6 gap-1 pe-2 text-muted" style="grid-template-columns: {{{ if !reputation:disabled }}}1fr{{{ end }}} 1fr 1fr;">
+				<!-- Resolved/Open status -->
+				<div class="stats-resolved card card-header border-0 p-2 overflow-hidden rounded-1 d-flex flex-column align-items-center">
+					{{{ if ./resolved }}}
+					<span class="fs-5 ff-secondary lh-1 text-success"><i class="fa fa-fw fa-circle-check"></i></span>
+					<span class="d-none d-xl-flex text-lowercase text-xs text-success">Resolved</span>
+					<i class="d-xl-none fa fa-fw text-xs text-success fa-circle-check"></i>
+					{{{ else }}}
+					<span class="fs-5 ff-secondary lh-1 text-primary"><i class="fa fa-fw fa-circle-dot"></i></span>
+					<span class="d-none d-xl-flex text-lowercase text-xs text-primary">Open</span>
+					<i class="d-xl-none fa fa-fw text-xs text-primary fa-circle-dot"></i>
+					{{{ end }}}
+				</div>
 				{{{ if !reputation:disabled }}}
 				<div class="stats-votes card card-header border-0 p-2 overflow-hidden rounded-1 d-flex flex-column align-items-center">
 					<span class="fs-5 ff-secondary lh-1" title="{./votes}">{humanReadableNumber(./votes, 0)}</span>

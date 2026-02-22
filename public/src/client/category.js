@@ -27,6 +27,7 @@ define('forum/category', [
 		topicList.init('category', loadTopicsAfter);
 
 		sort.handleSort('categoryTopicSort', 'category/' + ajaxify.data.slug);
+		sort.handleStatusFilter('category/' + ajaxify.data.slug); // additional filter for open/closed topics
 
 		if (!config.usePagination) {
 			navigator.init('[component="category/topic"]', ajaxify.data.topic_count, Category.toTop, Category.toBottom);
