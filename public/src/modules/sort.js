@@ -38,6 +38,7 @@ define('sort', ['components'], function (components) {
 				e.preventDefault();
 				e.stopPropagation();
 				const newStatus = $(this).attr('data-status');
+				
 				const params = utils.params();
 				if (newStatus === 'all') {
 					delete params.resolved;
