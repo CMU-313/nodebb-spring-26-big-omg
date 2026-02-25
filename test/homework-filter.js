@@ -18,7 +18,7 @@ describe('Homework Filter UI', () => {
 	};
 	const utils = require('../public/src/utils');
 
-	it('should build the correct URL and preserve keyword (Note 5)', () => {
+	it('should build the correct URL and preserve keyword', () => {
 		const originalParams = utils.params;
 		utils.params = () => ({ keyword: 'algebra' });
 
@@ -37,7 +37,7 @@ describe('Homework Filter UI', () => {
 		utils.params = originalParams;
 	});
 
-	it('should show empty state message when topics is empty (Note 5)', () => {
+	it('should show empty state message when topics is empty', () => {
 		// 1. Setup HTML with a topic list and a hidden empty-state alert
 		document.body.innerHTML = `
 			<div id="homework-container">

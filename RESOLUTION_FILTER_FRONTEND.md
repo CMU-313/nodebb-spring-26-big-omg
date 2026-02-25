@@ -24,19 +24,27 @@ This patch includes:
 
 
 ## 3. Testing
-Updated file:
+New file:
 
-- `test/...`
+- `test/homework-filter`
 
 What changed:
 
-- 
+- Created a dedicated test suite using `JSDOM` to mock the frontend browser environment.
+
+- Added tests to verify the correct URL is built when a homework filter is applied or cleared (ensuring existing parameters like `keyword` are preserved).
+
+- Added UI state tests to verify the DOM updates correctly based on API data (showing an empty state alert when `topics` is empty, and hiding it when topics exist).
 
 Why:
 
-- 
+- To fulfill the specific requirements regarding URL parameter preservation and empty state handling.
 
-## 5. Frontend Integration Notes
+- To cleanly separate frontend/UI DOM manipulation tests from pure backend or utility tests, making it easier to debug failures.
+
+- To ensure a resilient user experience by formally covering the filter's happy path, unhappy path, and reset states.
+
+## 4. Frontend Integration Notes
 
 Frontend should:
 
@@ -50,7 +58,7 @@ Recommended request examples:
 - `/api/homework/filter?homework=hw1`
 - `/api/homework/filter?homework=hw1&keyword=dynamic&page=1&perPage=20`
 
-## 6. Net Effect
+## 5. Net Effect
 
 After this patch:
 
