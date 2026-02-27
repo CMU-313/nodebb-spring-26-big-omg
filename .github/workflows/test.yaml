@@ -89,4 +89,5 @@ jobs:
         run: npm run coverage
 
       - name: Test coverage
+        continue-on-error: true
         uses: coverallsapp/github-action@v2
