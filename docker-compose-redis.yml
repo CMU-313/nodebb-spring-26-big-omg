@@ -3,6 +3,7 @@ version: '3.8'
 services:
   nodebb:
     build: .
+    user: "0"
     # image: ghcr.io/nodebb/nodebb:latest
     restart: unless-stopped
     ports:
