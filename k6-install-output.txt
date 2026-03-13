@@ -1,0 +1,13 @@
+Installation steps for k6
+
+Command used:
+brew install k6
+
+Verification command:
+k6 version
+
+Terminal Output:
+k6 v0.49.0
+
+Location of installed binary:
+/opt/homebrew/bin/k6
