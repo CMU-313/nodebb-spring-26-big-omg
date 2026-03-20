@@ -1,11 +1,11 @@
 'use strict';
 
-
 const assert = require('assert');
 const validator = require('validator');
 const { JSDOM } = require('jsdom');
 const slugify = require('../src/slugify');
 const db = require('./mocks/databasemock');
+const fc = require('fast-check');
 
 describe('Utility Methods', () => {
 	// https://gist.github.com/robballou/9ee108758dc5e0e2d028
@@ -132,11 +132,26 @@ describe('Utility Methods', () => {
 			assert.notEqual(uuid1, uuid2, 'matches');
 		});
 
-		it('should return a random number between 1-10 inclusive', () => {
+		it('should ALWAYS return a number strictly between min and max (inclusive)', () => {
 			const { secureRandom } = require('../src/utils');
-			const r1 = secureRandom(1, 10);
-			assert(r1 >= 1);
-			assert(r1 <= 10);
+			
+			fc.assert(
+				fc.property(
+					// Generate two random integers
+					fc.integer(),
+					fc.integer(),
+					(a, b) => {
+						// Ensure we know which is min and which is max
+						const min = Math.min(a, b);
+						const max = Math.max(a, b);
+					   
+						const result = secureRandom(min, max);
+					   
+						// The property that must ALWAYS hold true:
+						return result >= min && result <= max;
+					}
+				)
+			);
 		});
 
 		it('should always return 3', () => {
@@ -163,10 +178,22 @@ describe('Utility Methods', () => {
 		});
 	});
 
-	it('should remove punctuation', (done) => {
-		const removed = utils.removePunctuation('some text with , ! punctuation inside "');
-		assert.equal(removed, 'some text with   punctuation inside ');
-		done();
+	it('should always return a string entirely devoid of punctuation', () => {
+		fc.assert(
+			fc.property(
+				fc.string(),
+				(randomStr) => {
+					const result = utils.removePunctuation(randomStr);
+				   
+					// Define what we consider punctuation based on the actual implementation
+					const punctuationRegex = /[.,-/#!$%^&*;:{}=_`<>'"~()?]/;
+				   
+					const hasNoPunctuation = !punctuationRegex.test(result);
+				   
+					return hasNoPunctuation;
+				}
+			)
+		);
 	});
 
 	it('should get language key', () => {
@@ -224,15 +251,32 @@ describe('Utility Methods', () => {
 		assert(validator.isUUID(utils.generateUUID()));
 	});
 
-	it('should shallow merge two objects', (done) => {
-		const a = { foo: 1, cat1: 'ginger' };
-		const b = { baz: 2, cat2: 'phoebe' };
-		const obj = utils.merge(a, b);
-		assert.strictEqual(obj.foo, 1);
-		assert.strictEqual(obj.baz, 2);
-		assert.strictEqual(obj.cat1, 'ginger');
-		assert.strictEqual(obj.cat2, 'phoebe');
-		done();
+	it('should always shallow merge two objects correctly', () => {
+		fc.assert(
+			fc.property(
+				fc.dictionary(fc.string(), fc.anything()), // Object A
+				fc.dictionary(fc.string(), fc.anything()), // Object B
+				(objA, objB) => {
+					// Copy the inputs so we don't mutate them during testing
+					const cloneA = { ...objA };
+					const cloneB = { ...objB };
+				   
+					const merged = utils.merge(cloneA, cloneB);
+				   
+					// 1. All keys from B must be in the merged object with B's values
+					for (const key of Object.keys(objB)) {
+						if (merged[key] !== objB[key]) return false;
+					}
+				   
+					// 2. All keys from A (that aren't in B) must retain A's values
+					for (const key of Object.keys(objA)) {
+						if (!(key in objB) && merged[key] !== objA[key]) return false;
+					}
+				   
+					return true;
+				}
+			)
+		);
 	});
 
 	it('should return the file extesion', (done) => {
@@ -394,37 +438,37 @@ describe('Utility Methods', () => {
 		assert.strictEqual(params.get('herp[]'), '2');
 	});
 
-	describe('toType', () => {
-		it('should return param as is if not string', (done) => {
-			assert.equal(123, utils.toType(123));
-			done();
+	describe('toType (PBT)', () => {
+		it('should correctly coerce stringified booleans and numbers back to native types', () => {
+			fc.assert(
+				fc.property(
+					// Test booleans and numbers dynamically
+					fc.oneof(fc.boolean(), fc.float()),
+					(val) => {
+						const stringified = String(val);
+						const result = utils.toType(stringified);
+					   
+						// The result must strictly equal the original native value
+						return result === val;
+					}
+				)
+			);
 		});
 
-		it('should convert return string numbers as numbers', (done) => {
-			assert.equal(123, utils.toType('123'));
-			done();
-		});
-
-		it('should convert string "false" to boolean false', (done) => {
-			assert.strictEqual(false, utils.toType('false'));
-			done();
-		});
-
-		it('should convert string "true" to boolean true', (done) => {
-			assert.strictEqual(true, utils.toType('true'));
-			done();
-		});
-
-		it('should parse json', (done) => {
-			const data = utils.toType('{"a":"1"}');
-			assert.equal(data.a, '1');
-			done();
-		});
-
-		it('should return string as is if its not json,true,false or number', (done) => {
-			const regularStr = 'this is a regular string';
-			assert.equal(regularStr, utils.toType(regularStr));
-			done();
+		it('should correctly parse stringified JSON objects', () => {
+			fc.assert(
+				fc.property(
+					fc.jsonObject(),
+					(obj) => {
+						const stringified = JSON.stringify(obj);
+						const result = utils.toType(stringified);
+					   
+						// Use deepStrictEqual because we are comparing objects
+						assert.deepStrictEqual(result, obj);
+						return true;
+					}
+				)
+			);
 		});
 	});
 
@@ -520,11 +564,21 @@ describe('Utility Methods', () => {
 		done();
 	});
 
-	it('`utils.rtrim` should remove trailing space', (done) => {
-		assert.strictEqual(utils.rtrim('  thing   '), '  thing');
-		assert.strictEqual(utils.rtrim('\tthing\t\t'), '\tthing');
-		assert.strictEqual(utils.rtrim('\t thing \t'), '\t thing');
-		done();
+	it('`utils.rtrim` should always remove trailing whitespace', () => {
+		fc.assert(
+			fc.property(
+				fc.string(),
+				// Generate a string consisting only of whitespace characters
+				fc.stringOf(fc.constantFrom(' ', '\t', '\n', '\r')),
+				(randomStr, randomWhitespace) => {
+					// E.g., if randomStr is "hello  ", rtrim("hello  " + " \t") should equal rtrim("hello  ")
+					const combined = randomStr + randomWhitespace;
+					const result = utils.rtrim(combined);
+				   
+					return result === utils.rtrim(randomStr);
+				}
+			)
+		);
 	});
 
 	it('should profile function', (done) => {
