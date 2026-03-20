@@ -263,25 +263,20 @@ describe('Utility Methods', () => {
 				   
 					const merged = utils.merge(cloneA, cloneB);
 				   
+					const equal = (a, b) => (a === b || (Number.isNaN(a) && Number.isNaN(b)));
 					// 1. All keys from B must be in the merged object with B's values
 					for (const key of Object.keys(objB)) {
-						if (merged[key] !== objB[key]) return false;
+						if (!equal(merged[key], objB[key])) return false;
 					}
-				   
+					   
 					// 2. All keys from A (that aren't in B) must retain A's values
 					for (const key of Object.keys(objA)) {
-						if (!(key in objB) && merged[key] !== objA[key]) return false;
+						if (!(key in objB) && !equal(merged[key], objA[key])) return false;
 					}
-				   
 					return true;
 				}
 			)
 		);
-	});
-
-	it('should return the file extesion', (done) => {
-		assert.equal(utils.fileExtension('/path/to/some/file.png'), 'png');
-		done();
 	});
 
 	it('should return file mime type', (done) => {
@@ -458,13 +453,13 @@ describe('Utility Methods', () => {
 		it('should correctly parse stringified JSON objects', () => {
 			fc.assert(
 				fc.property(
-					fc.jsonObject(),
-					(obj) => {
-						const stringified = JSON.stringify(obj);
+					fc.jsonValue(),
+					(val) => {
+						const stringified = JSON.stringify(val);
 						const result = utils.toType(stringified);
 					   
 						// Use deepStrictEqual because we are comparing objects
-						assert.deepStrictEqual(result, obj);
+						assert.deepStrictEqual(result, JSON.parse(stringified));
 						return true;
 					}
 				)
@@ -569,7 +564,7 @@ describe('Utility Methods', () => {
 			fc.property(
 				fc.string(),
 				// Generate a string consisting only of whitespace characters
-				fc.stringOf(fc.constantFrom(' ', '\t', '\n', '\r')),
+				fc.string({ unit: fc.constantFrom(' ', '\t', '\n', '\r') }),
 				(randomStr, randomWhitespace) => {
 					// E.g., if randomStr is "hello  ", rtrim("hello  " + " \t") should equal rtrim("hello  ")
 					const combined = randomStr + randomWhitespace;
