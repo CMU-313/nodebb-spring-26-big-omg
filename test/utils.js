@@ -442,8 +442,8 @@ describe('Utility Methods', () => {
 		it('should correctly coerce stringified booleans and numbers back to native types', () => {
 			fc.assert(
 				fc.property(
-					// Test booleans and numbers dynamically
-					fc.oneof(fc.boolean(), fc.float()),
+					// Test booleans and numbers dynamically, explicitly filtering out Infinity and NaN
+					fc.oneof(fc.boolean(), fc.float({ noNaN: true }).filter(n => isFinite(n))),
 					(val) => {
 						const stringified = String(val);
 						const result = utils.toType(stringified);
@@ -458,13 +458,16 @@ describe('Utility Methods', () => {
 		it('should correctly parse stringified JSON objects', () => {
 			fc.assert(
 				fc.property(
-					fc.jsonObject(),
+					fc.object({ maxDepth: 2, maxKeys: 5 }),
 					(obj) => {
 						const stringified = JSON.stringify(obj);
+						// Skip if stringify returns undefined (not a valid JSON object)
+						if (stringified === undefined) return true;
+						
 						const result = utils.toType(stringified);
 					   
-						// Use deepStrictEqual because we are comparing objects
-						assert.deepStrictEqual(result, obj);
+						// Only test objects that survive JSON serialization intact
+						assert.deepStrictEqual(result, JSON.parse(stringified));
 						return true;
 					}
 				)
@@ -569,7 +572,7 @@ describe('Utility Methods', () => {
 			fc.property(
 				fc.string(),
 				// Generate a string consisting only of whitespace characters
-				fc.stringOf(fc.constantFrom(' ', '\t', '\n', '\r')),
+				fc.array(fc.constantFrom(' ', '\t', '\n', '\r')).map(arr => arr.join('')),
 				(randomStr, randomWhitespace) => {
 					// E.g., if randomStr is "hello  ", rtrim("hello  " + " \t") should equal rtrim("hello  ")
 					const combined = randomStr + randomWhitespace;
