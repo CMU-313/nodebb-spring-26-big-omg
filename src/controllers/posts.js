@@ -5,6 +5,7 @@ const querystring = require('querystring');
 
 const meta = require('../meta');
 const posts = require('../posts');
+const topics = require('../topics');
 const privileges = require('../privileges');
 const activitypub = require('../activitypub');
 const utils = require('../utils');
@@ -54,4 +55,43 @@ postsController.getRecentPosts = async function (req, res) {
 	const stop = start + postsPerPage - 1;
 	const data = await posts.getRecentPosts(req.uid, start, stop, req.params.term);
 	res.json(data);
+};
+
+postsController.translatePost = async function (req, res, next) {
+	const pid = utils.isNumber(req.params.pid) ? parseInt(req.params.pid, 10) : req.params.pid;
+	if (!pid) {
+		return next();
+	}
+
+	const canRead = await privileges.posts.can('topics:read', pid, req.uid);
+	if (!canRead) {
+		return helpers.notAllowed(req, res);
+	}
+
+	const postData = await posts.getPostFields(pid, ['pid', 'tid', 'content', 'sourceContent', 'translatedContent']);
+	if (!postData) {
+		return next();
+	}
+
+	if (postData.translatedContent) {
+		return res.json({
+			pid,
+			translatedContent: postData.translatedContent,
+			cached: true,
+		});
+	}
+
+	const topicData = await topics.getTopicFields(postData.tid, ['title']);
+	const sourceContent = String(postData.sourceContent || postData.content || '');
+	const translatedContent = await posts.translation.fetchTranslation(sourceContent, topicData && topicData.title);
+
+	if (translatedContent) {
+		await posts.setPostField(pid, 'translatedContent', translatedContent);
+	}
+
+	res.json({
+		pid,
+		translatedContent: translatedContent || '',
+		cached: false,
+	});
 };

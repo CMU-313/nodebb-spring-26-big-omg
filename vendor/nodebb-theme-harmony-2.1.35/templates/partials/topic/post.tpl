@@ -83,6 +83,12 @@
 		<div class="content text-break" component="post/content" itemprop="text">
 			{posts.content}
 		</div>
+		<div class="mt-2">
+			<button class="btn btn-outline-secondary btn-sm" component="post/translate" data-pid="{posts.pid}" type="button">Translate</button>
+			<div class="mt-2 p-2 border rounded-1 text-break {{{ if !posts.translatedContent }}}hidden{{{ end }}}" component="post/translated-content">
+				{posts.translatedContent}
+			</div>
+		</div>
 
 		<div component="post/footer" class="post-footer border-bottom pb-2">
 			{{{ if posts.user.signature }}}
