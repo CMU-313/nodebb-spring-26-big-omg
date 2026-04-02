@@ -1,0 +1,29 @@
+get:
+  tags:
+    - posts
+  summary: Translate a specific post into English
+  description: Returns a cached or newly generated English translation for the specified post.
+  parameters:
+    - name: pid
+      in: path
+      required: true
+      schema:
+        type: string
+      example: 1
+  responses:
+    "200":
+      description: Translation payload for the requested post
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pid:
+                type: number
+                example: 1
+              translatedContent:
+                type: string
+                example: This is an English translation of the post.
+              cached:
+                type: boolean
+                example: true
