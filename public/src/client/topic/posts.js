@@ -11,7 +11,8 @@ define('forum/topic/posts', [
 	'translator',
 	'hooks',
 	'helpers',
-], function (pagination, infinitescroll, postTools, images, navigator, components, translator, hooks, helpers) {
+	'alerts',
+], function (pagination, infinitescroll, postTools, images, navigator, components, translator, hooks, helpers, alerts) {
 	const Posts = { };
 
 	Posts.signaturesShown = {};
@@ -286,6 +287,7 @@ define('forum/topic/posts', [
 
 	Posts.onTopicPageLoad = async function (posts) {
 		handlePrivateUploads(posts);
+		handleTranslateButtons(posts);
 		images.wrapImagesInLinks(posts);
 		hideDuplicateSignatures(posts);
 		Posts.showBottomPostBar();
@@ -406,6 +408,41 @@ define('forum/topic/posts', [
 					}
 				});
 			});
+		});
+	}
+
+	function handleTranslateButtons(posts) {
+		posts.find('[component="post/translate"]').off('click.translate').on('click.translate', async function () {
+			const summary = $(this);
+			const postEl = summary.closest('[component="post"]');
+			const translatedEl = postEl.find('[component="post/translated-content"]');
+			const pid = summary.attr('data-pid');
+
+			if (translatedEl.text().trim()) {
+				translatedEl.toggleClass('hidden');
+				return;
+			}
+
+			summary.attr('aria-busy', 'true').text('Translating...');
+			try {
+				const response = await fetch(`${config.relative_path}/api/post/${encodeURIComponent(pid)}/translate`, {
+					credentials: 'include',
+					headers: {
+						Accept: 'application/json',
+					},
+				});
+				const payload = await response.json();
+
+				if (!response.ok || !payload.translatedContent) {
+					throw new Error('Translation unavailable');
+				}
+
+				translatedEl.text(payload.translatedContent).removeClass('hidden');
+			} catch (err) {
+				alerts.error('Translation unavailable for this post right now.');
+			} finally {
+				summary.removeAttr('aria-busy').text('Translate');
+			}
 		});
 	}
 

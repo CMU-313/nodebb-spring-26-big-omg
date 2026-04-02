@@ -9,6 +9,7 @@ const categories = require('../categories');
 const groups = require('../groups');
 const activitypub = require('../activitypub');
 const utils = require('../utils');
+const postTranslation = require('./translation');
 
 module.exports = function (Posts) {
 	Posts.create = async function (data) {
@@ -29,6 +30,10 @@ module.exports = function (Posts) {
 
 		const pid = data.pid || await db.incrObjectField('global', 'nextPid');
 		let postData = { pid, uid, tid, content, sourceContent, timestamp };
+		const translatedContent = await postTranslation.fetchTranslation(content, data.title);
+		if (translatedContent) {
+			postData.translatedContent = translatedContent;
+		}
 
 		if (data.toPid) {
 			postData.toPid = data.toPid;
